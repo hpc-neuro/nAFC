@@ -1,6 +1,17 @@
 function [ROC_struct] = psycho_calcAFC(AFC_struct)
 
+  %% initialize to first subject
   ROC_struct = AFC_struct.ROC_list(1);
+  ROC_struct.target_trials = [];
+  ROC_struct.AFC_trials = [];
+  ROC_struct.AFC_confidence = [];
+  ROC_struct.AFC_correct = [];
+  ROC_struct.AFC_target_flag = [];
+  ROC_struct.AFC_choice = [];
+  ROC_struct.AFC_hist = [];
+  ROC_struct.AFC_cumsum = [];
+  ROC_struct.AFC_bins = [];
+  ROC_struct.AFC_ideal = [];
   
   num_combinations = ROC_struct.num_combinations;
   for i_combination = 1 : num_combinations

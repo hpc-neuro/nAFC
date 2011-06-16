@@ -25,21 +25,21 @@ global NUM_CONFIDENCE_BINS
 NUM_CONFIDENCE_BINS = 4;
 
 
-remake_AFC_struct = 1;  %% set to 1 to ignore existing anal_struct file
+remake_AFC_struct = 0;  %% set to 1 to ignore existing anal_struct file
 
 global ROOT_PATH
-ROOT_PATH = "/Users/gkenyon/MATLAB/gitPatches/";
+ROOT_PATH = '/Users/gkenyon/MATLAB/';  %% edit to configure local implementation
 if ~exist(ROOT_PATH, 'dir')
   error(['ROOT_PATH does not exist:', ROOT_PATH]);
 end
 
 global ANALYSIS_PATH
-ANALYSIS_PATH = [ROOT_PATH, "analysis/"];
+ANALYSIS_PATH = [ROOT_PATH, 'nAFC/analysis/'];
 mkdir(ANALYSIS_PATH); %% does not clobber existing dir
 
 AFC_struct_filename = ...
     [ANALYSIS_PATH, 'results/', 'AFC_struct', '.mat']
-read_exp_list = ~exist(AFC_struct_filename, "file") || remake_AFC_struct
+read_exp_list = ~exist(AFC_struct_filename, 'file') || remake_AFC_struct
 
 if read_exp_list
   AFC_struct = struct;
@@ -54,14 +54,24 @@ end
 %% (re)set paths
 AFC_struct.root_path = ROOT_PATH;
 AFC_struct.analysis_path = ANALYSIS_PATH;
-AFC_struct.results_path = [AFC_struct.root_path, "results/official/"];
-AFC_struct.invalid_path = [AFC_struct.root_path, "results/invalid/"];
-if ~exist(AFC_struct.results_path, 'dir')
-  mkdir(AFC_struct.results_path);  %% if here, experimental data must be
+AFC_struct.exp_results_path = ...
+    [AFC_struct.root_path, ...
+     'patches/results/official/'];
+AFC_struct.analysis_results_path = ...
+    [AFC_struct.root_path, ...
+     'nAFC/analysis/results/'];
+  mkdir(AFC_struct.analysis_results_path); %% does not clobber existing dir
+AFC_struct.invalid_path = ...
+    [AFC_struct.root_path, ...
+     'patches/results/invalid/'];
+if ~exist(AFC_struct.exp_results_path, 'dir')
+    warning(['exp_results_path does not exist:', ...
+	   AFC_struct.exp_results_path]);
+  %% if here, experimental data must be
   %% in preexisting AFC_struct
   if ~isfield(AFC_struct, 'exp_list')
-    error(['exp_list does not exist in anal_struct read from:', ...
-	   AFC_struct.anal_path]);
+    error(['exp_list does not exist in AFC_struct read from:', ...
+	   AFC_struct.analysis_results_path]);
   end
 end
 mkdir(AFC_struct.invalid_path); %% does not clobber existing dir
@@ -74,7 +84,7 @@ AFC_struct.filename = ...
 %% get list of subject IDs, build data structs to hold exp data and ROC analysis
 fig_list = [];
 if read_exp_list
-  AFC_dir_struct = dir([AFC_struct.results_path, '*.mat']);
+  AFC_dir_struct = dir([AFC_struct.exp_results_path, '*.mat']);
   AFC_num_IDs = size(AFC_dir_struct,1);
   AFC_struct.random_IDs = [];
   AFC_struct.num_IDs = 0;
@@ -82,11 +92,11 @@ if read_exp_list
   AFC_struct.exp_list = [];
   for i_AFC_ID = 1 : AFC_num_IDs
     AFC_ID_filename = AFC_dir_struct(i_AFC_ID,1).name;
-    AFC_ID_ndx = strfind( AFC_ID_filename, ".mat" );
+    AFC_ID_ndx = strfind( AFC_ID_filename, '.mat' );
     AFC_ID_str = AFC_ID_filename(1:AFC_ID_ndx-1);
     AFC_ID = str2num(AFC_ID_str);
     disp(['AFC_ID = ', AFC_ID_str]);
-    AFC_filename = [AFC_struct.results_path, AFC_ID_filename];
+    AFC_filename = [AFC_struct.exp_results_path, AFC_ID_filename];
     load(AFC_filename);
     AFC_exp_struct = exp_struct;
     AFC_exp_struct.AFC_ID = AFC_ID;
@@ -121,7 +131,7 @@ if read_exp_list
     end
   end %% i_AFC_ID
 
-  psycho_saveFigList( fig_list, AFC_struct.analysis_path, 'png');
+  psycho_saveFigList( fig_list, AFC_struct.analysis_results_path, 'png');
   close all;
   fig_list = [];
   
@@ -133,17 +143,23 @@ end % read_exp_list
 %% !!!TODO: merge trial level data as well
 %% currently just averages ROC curves and performance
 
-[ROC_struct] = psycho_calcAFC(AFC_struct);
-AFC_struct.ROC_struct = ROC_struct;
+[mean_ROC_struct] = psycho_calcAFC(AFC_struct);
+%%AFC_struct.mean_ROC_struct = mean_ROC_struct;
+mean_ROC_struct.AFC_AUC
 
-[fig_list_tmp] = psycho_plotAFC(ROC_struct);
+[fig_list_tmp] = psycho_plotAFC(mean_ROC_struct);
 fig_list = [fig_list; fig_list_tmp];
+
+[combo_exp_struct] = psycho_comboAFCTrials(AFC_struct);
+[combo_ROC_struct, combo_exp_struct, fig_list] = ...
+    psycho_AFC(combo_exp_struct, AFC_struct);
+combo_ROC_struct.AFC_AUC
 
 %% !!!TODO: the following should plot AUC vs xfactor vals for each xfactor
 %%[fig_tmp] = psycho_plotallAFCAUC(AFC_struct);
 %%fig_list = [fig_list; fig_tmp];
 
-psycho_saveFigList( fig_list, [AFC_struct.analysis_path, 'results/'], 'png');
+psycho_saveFigList( fig_list, AFC_struct.analysis_results_path, 'png');
 fig_list = [];
 
 AFC_struct.AFC_fieldnames = fieldnames(AFC_struct);
