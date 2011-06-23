@@ -18,14 +18,19 @@ SOA_INDEX = -1;
 %% maximum number of experimental conditions per experimental variable
 %% e.g. maximum number of distinct SOAs
 global MAX_X_FACTOR_VALS
-MAX_X_FACTOR_VALS = [2,3];
+MAX_X_FACTOR_VALS = [2,2];
 
 %% number of discrete threshold values for constructing ROC curves
 global NUM_CONFIDENCE_BINS
 NUM_CONFIDENCE_BINS = 4;
 
+global AFC_PLOT_HIST_FLAG AFC_PLOT_IDEAL_FLAG AFC_PLOT_ROC_FLAG
+AFC_PLOT_HIST_FLAG = 0;
+AFC_PLOT_IDEAL_FLAG = 0;
+AFC_PLOT_ROC_FLAG = 0;
 
-remake_AFC_struct = 0;  %% set to 1 to ignore existing anal_struct file
+
+remake_AFC_struct = 1;  %% set to 1 to ignore existing anal_struct file
 
 global ROOT_PATH
 ROOT_PATH = '/Users/gkenyon/MATLAB/';  %% edit to configure local implementation
@@ -145,7 +150,10 @@ end % read_exp_list
 
 [mean_ROC_struct] = psycho_calcAFC(AFC_struct);
 %%AFC_struct.mean_ROC_struct = mean_ROC_struct;
+disp('mean_ROC_struct.AFC_AUC = ');
 mean_ROC_struct.AFC_AUC
+disp('mean_ROC_struct.AFC_std = ');
+mean_ROC_struct.AFC_std
 
 [fig_list_tmp] = psycho_plotAFC(mean_ROC_struct);
 fig_list = [fig_list; fig_list_tmp];

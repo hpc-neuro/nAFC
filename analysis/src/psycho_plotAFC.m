@@ -1,6 +1,10 @@
-function [fig_list] = psycho_plotAFC(ROC_struct)
+function [fig_tmp] = psycho_plotAFC(ROC_struct)
 
-  fig_list = [];
+  fig_tmp = figure;
+  axis( [0 1 0 1] );
+  axis square
+  hold on
+  
   num_combinations = ROC_struct.num_combinations;
   for i_combination = 1 : num_combinations
     x_factor_subindex = zeros(1,ROC_struct.num_x_factors);
@@ -19,8 +23,9 @@ function [fig_list] = psycho_plotAFC(ROC_struct)
 	ROC_struct.AFC_ROC{i_combination};
     [fig_tmp] = ...
 	psycho_plotAFCROC(AFC_ROC, ...
-			  ['ALL ', num2str(x_factor_subindex)]);
-    fig_list = [fig_list; fig_tmp];
-    
+			  ['ALL ', num2str(x_factor_subindex)], ...
+			  fig_tmp,
+			  i_combination);    
 
   end
+  legend(num2str(1:num_combinations));  
