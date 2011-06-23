@@ -3,9 +3,11 @@ function [fig_tmp] = psycho_plotAFC(ROC_struct)
   fig_tmp = figure;
   axis( [0 1 0 1] );
   axis square
+  fig_tmp = figure('Name', 'AFC_ROC_mean');
   hold on
   
   num_combinations = ROC_struct.num_combinations;
+  legend_str = cell(num_combinations,1);
   for i_combination = 1 : num_combinations
     x_factor_subindex = zeros(1,ROC_struct.num_x_factors);
     i_residule = i_combination;
@@ -23,9 +25,10 @@ function [fig_tmp] = psycho_plotAFC(ROC_struct)
 	ROC_struct.AFC_ROC{i_combination};
     [fig_tmp] = ...
 	psycho_plotAFCROC(AFC_ROC, ...
-			  ['ALL ', num2str(x_factor_subindex)], ...
+			  num2str(x_factor_subindex), ...
 			  fig_tmp,
-			  i_combination);    
+			  i_combination);
+    legend_str{i_combination} = num2str(i_combination);
 
   end
-  legend(num2str(1:num_combinations));  
+  legend(legend_str, 'location', 'east');  
